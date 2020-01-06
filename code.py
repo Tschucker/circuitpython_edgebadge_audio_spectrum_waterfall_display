@@ -14,12 +14,12 @@ def cpy_fft(x):
     if N <= 1: return x
     even = cpy_fft(list(islice(x,0,N,2)))
     odd =  cpy_fft(list(islice(x,1,N,2)))
-    T = [(cos(2*pi*k/N)*odd[k][0]+sin(2*pi*k/N)*odd[k][1], cos(2*pi*k/N)*odd[k][1]-sin(2*pi*k/N)*odd[k][0]) for k in range(N//2)]
-    return [(even[k][0] + T[k][0], even[k][1] + T[k][1]) for k in range(N//2)] + \
-           [(even[k][0] - T[k][0] , even[k][1] - T[k][1]) for k in range(N//2)]
+    T = [cos(2*pi*k/N)*odd[k].real+sin(2*pi*k/N)*odd[k].imag + (cos(2*pi*k/N)*odd[k].imag-sin(2*pi*k/N)*odd[k].real)*1j for k in range(N//2)]
+    return [even[k].real + T[k].real + (even[k].imag + T[k].imag)*1j for k in range(N//2)] + \
+           [even[k].real - T[k].real + (even[k].imag - T[k].imag)*1j for k in range(N//2)]
 
 def cpy_abs(x):
-    return sqrt(pow(x[0],2) + pow(x[1],2))
+    return sqrt(pow(x.real,2) + pow(x.imag,2))
 
 def spectro(x):
     freq = cpy_fft(x)
@@ -145,7 +145,7 @@ while True:
         mic.record(samples_bit, len(samples_bit))
         complex_samples = []
         for n in range(fft_size):
-            complex_samples.append(((float(samples_bit[n])/32768.0)-1, 0.0))
+            complex_samples.append((float(samples_bit[n])/32768.0) + 0.0j)
         #compute spectrogram
         spectrogram = spectro(complex_samples)
         spectrogram = spectrogram[1:(fft_size//2)-1]
@@ -154,6 +154,8 @@ while True:
 
         if max_curr > max_all:
             max_all = max_curr
+        else:
+            max_curr = max_curr-1
 
         # Slide tile window
         for line in range(display.height):
