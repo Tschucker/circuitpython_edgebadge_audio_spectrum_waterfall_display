@@ -1,4 +1,4 @@
-# circuitpython_edgebadge_audio_spectrum_display
+# circuitpython edgebadge audio spectrum waterfall display
 Audio spectrum display for the Adafruit edge badge, using a custom FFT in circuit python!
 Basically a audio spectrogram written all in CircuitPyhton.
 
@@ -8,4 +8,4 @@ in order for the PDM library to access the microphone on the board.
 # Dependencies
 This depends on:
 
-* `Tea and Tech Time FFT <https://github.com/Tschucker/CircuitPython_FFT>`_
+[Tea and Tech Time FFT](https://github.com/Tschucker/CircuitPython_FFT)
