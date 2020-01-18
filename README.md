@@ -8,4 +8,4 @@ in order for the PDM library to access the microphone on the board.
 # Dependencies
 This depends on:
 
-[Tea and Tech Time FFT](https://github.com/Tschucker/CircuitPython_FFT)
+[Tea and Tech Time: CircuitPython FFT](https://github.com/Tschucker/CircuitPython_FFT)
