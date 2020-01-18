@@ -4,34 +4,10 @@ import time
 import audiobusio
 import displayio
 import random
-from math import pi, sin, cos, sqrt, pow, log
 import digitalio
 import array
-from adafruit_itertools import islice, count
-
-def cpy_fft(x):
-    N = len(x)
-    if N <= 1: return x
-    even = cpy_fft(list(islice(x,0,N,2)))
-    odd =  cpy_fft(list(islice(x,1,N,2)))
-    T = [cos(2*pi*k/N)*odd[k].real+sin(2*pi*k/N)*odd[k].imag + (cos(2*pi*k/N)*odd[k].imag-sin(2*pi*k/N)*odd[k].real)*1j for k in range(N//2)]
-    return [even[k].real + T[k].real + (even[k].imag + T[k].imag)*1j for k in range(N//2)] + \
-           [even[k].real - T[k].real + (even[k].imag - T[k].imag)*1j for k in range(N//2)]
-
-def cpy_abs(x):
-    return sqrt(pow(x.real,2) + pow(x.imag,2))
-
-def spectro(x):
-    freq = cpy_fft(x)
-    temp_list = []
-    for f in freq:
-        abs_val = cpy_abs(f)
-        if  abs_val != 0.0:
-            temp_list.append(int(log(abs_val)))
-        else:
-            temp_list.append(0)
-
-    return temp_list
+from teaandtechtime_fft import spectrogram, fft, ifft
+from math import sin, pi
 
 display = board.DISPLAY
 
@@ -122,18 +98,57 @@ mic = audiobusio.PDMIn(
     bit_depth=16
 )
 
-frequency = 63  # Set this to the Hz of the tone you want to generate.
+#assign the fft size we want to use
 fft_size = 256
-samples_bit = array.array('H', [0] * fft_size)
-"""
+#use some extra sample to account for the mic startup
+samples_bit = array.array('H', [0] * (fft_size+3))
+
+#Uncomment this code to test the fft library
+'''
+#create basic data structure to hold samples
 samples = array.array('f', [0] * fft_size)
 
+#assign a sinusoid to the samples
+frequency = 63  # Set this to the Hz of the tone you want to generate.
 for i in range(fft_size):
     samples[i] = sin(pi * 2 * i / (fft_size/frequency))
-complex_samples = []
+
+#create complex samples
+test_complex_samples = []
 for n in range(fft_size):
-    complex_samples.append(((float(samples[n]))-1, 0.0))
-"""
+    test_complex_samples.append(((float(samples[n]))-1 + 0.0j))
+
+#compute fft of complex samples
+test_fft = fft(test_complex_samples)
+
+#compute ifft of the fft values
+test_ifft = ifft(test_fft)
+
+#print computed values for testing and verification
+#print complex samples
+print("samples")
+for i in test_complex_samples:
+    print(i)
+    time.sleep(.01)
+
+#print fft values
+print("fft")
+for i in test_fft:
+    print(i)
+    time.sleep(.01)
+
+#print ifft values
+print("ifft")
+for i in test_ifft:
+    print(i)
+    time.sleep(.01)
+
+#compute absolut value of the error per sample
+print("error")
+for i in range(fft_size):
+    print(abs(test_ifft[i] - test_complex_samples[i]))
+    time.sleep(.01)
+'''
 
 # Main Loop
 i = 0
@@ -145,12 +160,12 @@ while True:
         mic.record(samples_bit, len(samples_bit))
         complex_samples = []
         for n in range(fft_size):
-            complex_samples.append((float(samples_bit[n])/32768.0) + 0.0j)
+            complex_samples.append((float(samples_bit[n+3])/32768.0) + 0.0j)
         #compute spectrogram
-        spectrogram = spectro(complex_samples)
-        spectrogram = spectrogram[1:(fft_size//2)-1]
-        min_curr = abs(min(spectrogram))
-        max_curr = max(spectrogram)+min_curr
+        spectrogram1 = spectrogram(complex_samples)
+        spectrogram1 = spectrogram1[1:(fft_size//2)-1]
+        min_curr = abs(min(spectrogram1))
+        max_curr = max(spectrogram1)+min_curr
 
         if max_curr > max_all:
             max_all = max_curr
@@ -162,6 +177,6 @@ while True:
             tile_grid[line] = (display.height-y-1+line)%display.height
 
         # Plot FFT
-        offset = (display.width-len(spectrogram))//2
-        for x in range(len(spectrogram)):
-            bitmap[x+offset, display.height-y-1] = int(((spectrogram[x]+min_curr)/(max_all))*55)
+        offset = (display.width-len(spectrogram1))//2
+        for x in range(len(spectrogram1)):
+            bitmap[x+offset, display.height-y-1] = int(((spectrogram1[x]+min_curr)/(max_all))*55)
