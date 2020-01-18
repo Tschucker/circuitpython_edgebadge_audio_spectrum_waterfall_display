@@ -104,7 +104,7 @@ fft_size = 256
 samples_bit = array.array('H', [0] * (fft_size+3))
 
 #Uncomment this code to test the fft library
-'''
+"""
 #create basic data structure to hold samples
 samples = array.array('f', [0] * fft_size)
 
@@ -148,7 +148,7 @@ print("error")
 for i in range(fft_size):
     print(abs(test_ifft[i] - test_complex_samples[i]))
     time.sleep(.01)
-'''
+"""
 
 # Main Loop
 i = 0
