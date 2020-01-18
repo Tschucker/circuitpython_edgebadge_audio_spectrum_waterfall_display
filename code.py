@@ -145,9 +145,11 @@ for i in test_ifft:
 
 #compute absolut value of the error per sample
 print("error")
+sum = 0
 for i in range(fft_size):
-    print(abs(test_ifft[i] - test_complex_samples[i]))
-    time.sleep(.01)
+    sum = sum + abs(test_ifft[i] - test_complex_samples[i])
+
+print(sum)
 """
 
 # Main Loop
